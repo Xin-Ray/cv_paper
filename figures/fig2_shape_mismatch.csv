@@ -1,0 +1,15 @@
+block,steps,observed
+"Clinical panel
+(cohort A)",19,1.0
+"Diet quality
+(cohort A)",19,2.38
+"Diet quality
+(cohort B)",15,2.35
+"Symptom score
+(cohort B)",15,2.83
+"Symptom score
+(cohort A)",19,4.63
+"Event count
+(cohort B)",15,15.0
+"Event count
+(cohort A)",19,19.0
