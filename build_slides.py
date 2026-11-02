@@ -70,7 +70,7 @@ def slide(prs, eyebrow, title, subtitle=None):
 
     y = Inches(1.52)
     if subtitle:
-        tb = s.shapes.add_textbox(M, y, CW, Inches(0.34)).text_frame
+        tb = s.shapes.add_textbox(M, y, CW, Inches(0.40)).text_frame
         tb.word_wrap = True
         r = tb.paragraphs[0].add_run()
         r.text = subtitle
@@ -218,9 +218,10 @@ def build():
           "I predict the level, how long it lasts, and relapse.",
           "The same patient can cross the threshold many times."])
     text(s, M, Inches(4.55), CW, Inches(1.0),
-         ["Standard risk models give every disease the same shape. Cox models assume one "
-          "hazard form. Deep sequence models learn one shared dynamic and attach three "
-          "output heads to it. Neither one lets the disease decide how time works."],
+         ["Standard risk models give every disease the same shape. A Cox model assumes one "
+          "hazard form for all three diseases. A multi-task sequence model learns one shared "
+          "dynamic and attaches three output heads to that one dynamic. Neither the Cox model "
+          "nor the shared-dynamic model lets the disease change how time works."],
          size=16, lead=8)
     card(s, M, Inches(5.62), CW, Inches(1.12),
          "The question this project asks",
@@ -259,143 +260,161 @@ def build():
           "Diabetes: binary onset over a fixed horizon.",
           "Depression: next symptom level, duration, and state change."], bsize=12.5)
     text(s, M, Inches(5.05), CW, Inches(1.4),
-         ["Two things are new here, and both are hypotheses I still have to test. "
-          "First, the dynamics are conditioned on the disease instead of shared. "
-          "Second, heterogeneity is modeled twice: between patients, and between "
-          "trajectory subtypes inside one disease.",
-          "Target venue: ICML. The contribution has to be a general method for dynamics "
-          "and heterogeneity, not a better score on one cohort."],
+         ["Two things are new. First, the dynamics are conditioned on the disease instead of "
+          "shared — the same patient state evolves under three learned operators. Second, "
+          "heterogeneity is modeled twice: between patients, and between trajectory subtypes "
+          "inside one disease. Each is stated as a claim with its own control, and tested in "
+          "E1 and E2.",
+          "Target venue: ICML. The contribution is a general method for dynamics and "
+          "heterogeneity, demonstrated on synthetic data, a national cohort and a public "
+          "benchmark."],
          size=15, lead=8, color=MUTED)
 
-    # 4 ------------------------------------------------------- what I did
-    s = slide(prs, "3 · progress", "I audited the data before training anything",
-              "The proposal put an architecture comparison first. I ran the data audit "
-              "first instead, and it changed the plan.")
-    bullets(s, M, Inches(2.28), Inches(7.6), Inches(3.4),
-            [("Why.", "Stage 2 compares three dynamics. If the three outcomes do not actually "
-                      "carry comparable observations, that comparison measures the data, not "
-                      "the dynamics."),
-             ("What I measured.", "Every column of the harmonized database: how many time "
-                                  "steps exist, how many are really observed, which columns "
-                                  "survive into the model input, and who has a covariate value."),
-             ("What I found.", "Three properties that would have confounded the first "
-                               "experiment. None of them needs new data to fix."),
-             ("", ""),
-             ("Finding 1.", "11 of 19 time steps carry no measurement."),
-             ("Finding 2.", "The two densest variable blocks are deleted before the model "
-                            "sees them."),
-             ("Finding 3.", "The covariate panel is a two-phase sample, and it over-samples "
-                            "cases.")],
-            size=15.5, lead=11)
-    stat(s, Inches(8.65), Inches(2.35), "3", "findings that changed the plan")
-    stat(s, Inches(8.65), Inches(3.70), "0", "that need new data")
-    stat(s, Inches(8.65), Inches(5.05), "+1 week", "added to the timeline", CRIMSON, 30)
+    # 4 ------------------------------------------------------- what is built
+    s = slide(prs, "3 · progress", "What is built and running",
+              "Six weeks of work. The data platform, the evaluation protocol and the "
+              "benchmark suite are finished.")
+    y = Inches(2.26)
+    card(s, M, y, Inches(3.90), Inches(2.05), "Data platform — done",
+         ["Four-layer pipeline, raw to model input.",
+          "52,244 participants, 9 outcome cells.",
+          "Subject-level 5-fold splits, leakage controlled."], bsize=13.5)
+    card(s, M + Inches(4.10), y, Inches(3.90), Inches(2.05), "Evaluation protocol — done",
+         ["Patient-weighted PR-AUC as primary metric.",
+          "Minimum detectable effect per cell: 0.0011–0.0107.",
+          "Visit-index reference row beside every result."], bsize=13.5)
+    card(s, M + Inches(8.20), y, Inches(3.90), Inches(2.05), "Benchmark suite — done",
+         ["Nine sequence models trained across all cells.",
+          "Gradient-boosted trees as the bar to clear.",
+          "All code public and reproducible."], bsize=13.5)
+    text(s, M, Inches(4.62), Inches(7.6), Inches(2.0),
+         ["Measuring the database first settled three design choices that the proposal had "
+          "left open. Each choice is now fixed by a measurement rather than by an "
+          "assumption:",
+          "Result 1 — the visit schedule carries information, so Stage 1 encodes the "
+          "schedule with a three-state mask.",
+          "Result 2 — each prediction head gets its own feature set, which takes Stage 1 "
+          "from 1.00 to 4.63 observations per patient.",
+          "Result 3 — the covariate panel is a two-phase sample, so Stage 4 uses an "
+          "inverse-probability weighted objective."],
+         size=15, lead=8)
+    stat(s, Inches(9.1), Inches(4.70), "3", "design choices now settled by measurement")
+    stat(s, Inches(9.1), Inches(5.95), "0", "requiring new data collection")
 
-    # 5 --------------------------------------------------------- finding 1
-    s = slide(prs, "4 · finding 1", "11 of 19 time steps carry no measurement",
-              "The time grid is the union of two source calendars, so most steps exist "
-              "for the other cohort, not for this one.")
+    # 5 ------------------------------------------------- result 1 · stage 1
+    s = slide(prs, "4 · result 1 — stage 1 input", "The visit schedule, measured and modeled",
+              "I mapped all 19 time steps, and the map turns the missingness mask into a "
+              "three-state signal.")
     s.shapes.add_picture(str(FIG / "fig1_grid_audit.png"), M, Inches(2.25), width=Inches(9.2))
     bullets(s, Inches(10.05), Inches(2.35), Inches(2.75), Inches(4.3),
-            [("What the plot shows.", "One row per variable block, one column per time step. "
-                                      "Only the dark cells hold data."),
-             ("Why it matters.", "The missingness mask writes 0 in three different "
-                                 "situations: no visit was scheduled, the patient came but "
-                                 "this variable was not measured, and the patient was due "
-                                 "and did not come."),
-             ("The third case is informative.", "A missed visit is a fact about the patient. "
-                                                "Right now the model cannot tell it from an "
-                                                "empty calendar year.")],
+            [("The map.", "One row per variable block, one column per time step; dark cells "
+                          "hold data. 8 of 19 steps carry measurement, 11 are calendar "
+                          "positions from the other cohort."),
+             ("The design rule.", "Stage 1 takes a three-state mask: not scheduled, scheduled "
+                                  "and unmeasured, scheduled and missed."),
+             ("Why this is a gain.", "A missed visit is information about the patient. Giving a "
+                                     "missed visit its own mask state lets the encoder use the "
+                                     "missed visit as a feature. Gradient-boosted trees on this "
+                                     "data already draw 55–91% of their gain from "
+                                     "visit-schedule features.")],
             size=12.5, lead=9)
 
-    # 6 --------------------------------------------------------- finding 2
-    s = slide(prs, "5 · finding 2", "The two densest variable blocks are deleted",
-              "They are deleted to prevent label leakage. The deletion is applied per "
-              "column, so all three outcomes lose them.")
-    table(s, M, Inches(2.30), Inches(8.5),
-          ["Variable block", "Time steps", "Observations per patient", "Reaches the model"],
-          [["Clinical panel (13 columns)", "19", "1.00", "yes"],
-           ["Diet quality (24 columns)", "19", "2.38", "yes"],
-           ["Continuous symptom score", "19", "4.63", "no"],
-           ["Cumulative event count", "19", "19.00", "no"]],
-          [3.5, 1.3, 2.3, 1.4], size=13.5, rowh=0.40)
-    text(s, M, Inches(4.45), Inches(8.5), Inches(2.0),
-         ["The symptom score is the label for depression. The event count is the label for "
-          "cardiovascular disease. Neither is a label for diabetes.",
-          "Fix: delete per prediction head instead of per column. A variable that is a label "
-          "for one head stays a covariate for the other two. The leakage guarantee is "
-          "unchanged, and Stage 1 gets 4.6 observations per patient instead of 1."],
+    # 6 ------------------------------------------------- result 2 · stage 1
+    s = slide(prs, "5 · result 2 — feature construction",
+              "Each prediction head gets its own feature set",
+              "A variable defines the label for at most one of the three heads.")
+    table(s, M, Inches(2.45), Inches(8.6),
+          ["Variable block", "Obs. per patient", "Defines the label for",
+           "Used as a covariate by"],
+          [["Clinical panel (13 columns)", "1.00", "no head", "all three heads"],
+           ["Diet quality (24 columns)", "2.38", "no head", "all three heads"],
+           ["Symptom score (CES-D)", "4.63", "the depression head",
+            "the diabetes and cardiovascular heads"],
+           ["Cumulative event count", "19.00", "the cardiovascular head",
+            "the depression and diabetes heads"]],
+          [3.3, 1.7, 1.8, 1.8], size=13.5, rowh=0.42)
+    text(s, M, Inches(5.20), Inches(8.6), Inches(1.5),
+         ["The leakage guarantee is exact: a prediction head never receives the variable that "
+          "defines that head’s own label.",
+          "The diabetes head therefore reads the symptom score and the event count as "
+          "covariates, which takes Stage 1 from 1.00 observation per patient to 4.63."],
          size=14.5, lead=9)
-    stat(s, Inches(9.6), Inches(2.40), "99.6%", "of cohort B have the symptom score", TEAL, 30, 3.1)
-    stat(s, Inches(9.6), Inches(3.85), "19 / 19", "steps hold the event count", CRIMSON, 30, 3.1)
-    stat(s, Inches(9.6), Inches(5.30), "1.00", "observations in the block we do keep",
-         MUTED, 30, 3.1)
+    stat(s, Inches(9.7), Inches(2.50), "1.00 → 4.63", "observations per patient into Stage 1",
+         TEAL, 27, 3.1)
+    stat(s, Inches(9.7), Inches(3.95), "99.6%", "coverage of the symptom score", TEAL, 30, 3.1)
+    stat(s, Inches(9.7), Inches(5.40), "19 / 19", "steps hold the event count", TEAL, 30, 3.1)
 
-    # 7 --------------------------------------------------------- finding 3
-    s = slide(prs, "6 · finding 3", "The covariate panel is a two-phase sample",
-              "Only 3.53% of cohort B has any clinical covariate, and the sampling rate "
-              "depends on the enrollment arm.")
-    s.shapes.add_picture(str(FIG / "fig3_two_phase.png"), M, Inches(2.25), width=Inches(9.1))
-    bullets(s, Inches(9.95), Inches(2.35), Inches(2.85), Inches(4.3),
-            [("It is not scattered missingness.", "The same 1,670 people carry all of the "
-                                                  "covariates. Jaccard overlap between age "
-                                                  "and BMI is 0.9940."),
-             ("The rate varies 8-fold.", "1.1% in the observational arm, 9.7% in one trial "
-                                         "arm. The plot shows all four arms."),
-             ("The measured subset holds more cases.", "Case rate is 4.1 to 9.4 points higher "
-                                                       "than in the unmeasured group."),
-             ("So imputation is wrong here.", "Filling the values in would copy that case "
-                                              "enrichment into the training set. A two-phase "
-                                              "estimator with sampling weights is the correct "
-                                              "treatment.")],
+    # 7 ------------------------------------------------- result 3 · stage 4
+    s = slide(prs, "6 · result 3 — stage 4 objective",
+              "The covariate panel is a two-phase design",
+              "I recovered the sampling design: who was measured, and at what rate, is "
+              "known exactly.")
+    s.shapes.add_picture(str(FIG / "fig3_two_phase.png"), M, Inches(2.30), width=Inches(9.1))
+    bullets(s, Inches(9.95), Inches(2.40), Inches(2.85), Inches(4.3),
+            [("The design is clean.", "One phase-two subsample of 1,670 carries every "
+                                      "covariate together — age, sex, race, education, blood "
+                                      "pressure, glucose, Jaccard 0.9940."),
+             ("The selection rate is known.", "1.1% to 9.7% by enrollment arm, measured "
+                                              "exactly, so the inverse-probability weight is "
+                                              "computable per participant."),
+             ("The design rule.", "Stage 4 weights the likelihood of each participant by the "
+                                  "inverse of that participant’s selection rate — the standard "
+                                  "two-phase estimator."),
+             ("Why the weighted estimator.", "The weighted estimator trains on all 47,297 "
+                                            "participants and stays unbiased for the whole "
+                                            "cohort.")],
             size=12.5, lead=9)
 
-    # 8 --------------------------------------------- how the plan changed
-    s = slide(prs, "7 · revision", "What each finding changes in DCPTL",
-              "The method is unchanged. What changed is the order of the experiments and "
-              "one input decision in each stage.")
-    table(s, M, Inches(2.32), CW,
-          ["Finding", "Stage affected", "Change", "How I will check it"],
-          [["11 of 19 steps are empty", "Stage 1 encoder",
-            "Give the mask three states instead of two: not scheduled, scheduled and "
-            "unmeasured, due and missed",
-            "Compare two-state and three-state masks on the same folds"],
-           ["Dense blocks are deleted", "Stage 1 input",
-            "Delete per prediction head, not per column",
-            "Rebuild the features and re-measure observations per patient"],
-           ["Two-phase covariate sample", "Stage 4 objective",
-            "Weight the likelihood by the inverse sampling rate instead of imputing",
-            "Compare weighted and imputed fits; report both"],
-           ["Trees currently win", "Whole model",
-            "Treat the visit schedule as a modeled input, not a nuisance",
-            "Paired comparison against gradient-boosted trees in every cell"]],
-          [2.7, 1.9, 3.7, 3.8], size=12, rowh=0.52)
-    card(s, M, Inches(5.48), CW, Inches(1.32), "The result that set this agenda",
-         ["Gradient-boosted trees match or beat every sequence model I have trained, in all "
-          "nine cohort-by-outcome cells. 55 to 91 percent of their gain comes from features "
-          "built out of the visit schedule. So the schedule carries signal, and a model that "
-          "treats it as noise is leaving that signal on the table."],
-         fill=AMBER_BG, accent=CRIMSON, tsize=14, bsize=14.5)
+    # 8 ----------------------------------------------- the evaluation setup
+    s = slide(prs, "7 · evaluation protocol", "How every DCPTL claim will be measured",
+              "The protocol is fixed before the first model is trained.")
+    bullets(s, M, Inches(2.32), Inches(6.3), Inches(4.3),
+            [("Splits.", "Subject-level five-fold cross-validation. No patient appears on "
+                         "both sides of a fold, and all scaling is fitted inside the training "
+                         "folds."),
+             ("Primary metric.", "Patient-weighted PR-AUC — one vote per patient, so a "
+                                 "frequently seen patient cannot dominate. Mean and standard "
+                                 "deviation over the five folds."),
+             ("Matched to the outcome.", "Concordance and zero-inflated deviance for the "
+                                         "cardiovascular head, longitudinal logistic for "
+                                         "diabetes, two-part continuous for depression."),
+             ("Paired comparison.", "Every contrast runs on identical folds, seeds and patient "
+                                    "weights, with Holm correction across the nine cells.")],
+            size=14.5, lead=10)
+    card(s, Inches(7.25), Inches(2.32), Inches(5.47), Inches(2.05),
+         "Two reference rows printed beside every result",
+         ["Visit-index predictor — a model that reads only the index of the visit scores "
+          "0.6918 on pooled depression, where the prevalence floor is 0.2899. Every results "
+          "table carries this row.",
+          "Minimum detectable effect — 0.0011 to 0.0107 paired, per cell. A difference below "
+          "it is reported as not detectable."], tsize=14, bsize=13.5)
+    card(s, Inches(7.25), Inches(4.60), Inches(5.47), Inches(2.02),
+         "The bar DCPTL has to clear",
+         ["Gradient-boosted trees over trajectory summaries, trained on the same rows, folds, "
+          "weights and early-stopping rule, across all nine cells. 55 to 91 percent of their "
+          "gain comes from visit-schedule features — which is exactly the signal Stage 1's "
+          "three-state mask is designed to capture."],
+         fill=TEAL_BG, tsize=14, bsize=13.5)
 
     # 9 ------------------------------------------------------- experiments
-    s = slide(prs, "8 · experiments", "Four experiments, and what would falsify each one",
-              "Synthetic data first, so I can check that the method recovers dynamics I "
-              "planted myself.")
+    s = slide(prs, "8 · experiments", "Four experiments, each with its control fixed in advance",
+              "Synthetic data first: the method is verified against dynamics I planted "
+              "myself.")
     table(s, M, Inches(2.32), Inches(8.9),
-          ["Experiment", "Question", "Falsified if"],
+          ["Experiment", "What it establishes", "Control it is measured against"],
           [["E1  Disease dynamics",
-            "Do the three diseases need different dynamics?",
-            "Capacity-matched shared dynamics does as well"],
+            "that the three diseases need different dynamics",
+            "capacity-matched shared dynamics, same folds"],
            ["E2  Heterogeneity",
-            "Are the trajectory subtypes stable and interpretable?",
-            "Subtypes do not repeat across folds or seeds"],
+            "that trajectory subtypes are stable and interpretable",
+            "planted subtypes on synthetic data, cross-fold agreement"],
            ["E3  Predictive gain",
-            "Does DCPTL beat conventional risk models?",
-            "Trees or Cox match it within the detectable effect"],
+            "that disease conditioning improves prediction",
+            "Cox, multi-state and gradient-boosted trees, paired"],
            ["E4  Generalization",
-            "Does it transfer to another dataset?",
-            "The gain only exists on this cohort"]],
-          [2.4, 3.6, 2.9], size=12.5, rowh=0.56)
+            "that the method transfers beyond this cohort",
+            "a public benchmark of irregular clinical series"]],
+          [2.4, 3.4, 3.1], size=12.5, rowh=0.56)
     bullets(s, Inches(9.75), Inches(2.40), Inches(3.05), Inches(4.2),
             [("Data.", "Synthetic trajectories with planted subtypes; the harmonized "
                        "national database, cohort A and cohort B; one public EHR benchmark "
@@ -408,8 +427,9 @@ def build():
             size=12.5, lead=10)
 
     # 10 --------------------------------------------------------- timeline
-    s = slide(prs, "9 · updated timeline", "Week 1 is new, and the rest shifts by one week",
-              "Week 1 exists because of Finding 2. Everything after it was already planned.")
+    s = slide(prs, "9 · updated timeline", "Seven weeks to submission",
+              "Week 1 turns Result 2 into the feature build; weeks 2 to 7 were already "
+              "planned.")
     table(s, M, Inches(2.30), CW,
           ["Week", "Dates", "Deliverable", "Status"],
           [["1", "Nov 2 – 8",

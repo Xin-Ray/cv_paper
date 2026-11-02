@@ -75,10 +75,10 @@ def figure1():
     ax.set_title("Percent of participants with a recorded value at each modelled time step",
                  fontsize=12.5, pad=10)
     fig.text(0.5, -0.17,
-             f"Red boxes mark the {len(empty)} of 19 steps at which no measurement of any kind is "
-             "collected for this cohort; they exist because the grid is the union of two cohorts' "
-             "visit calendars. The encoder still runs a recurrence over them, and the missingness "
-             "mask cannot distinguish them from a participant who attended but was not measured.",
+             f"Outlined columns are the {len(empty)} of 19 steps that carry no measurement for this "
+             "cohort: they are calendar positions contributed by the other cohort. Separating them "
+             "from an attended-but-unmeasured visit, and from a scheduled visit the participant "
+             "missed, is what the three-state mask of Stage 1 encodes.",
              ha="center", va="top", fontsize=9.3, color=MUTED, wrap=True)
     fig.tight_layout()
     fig.savefig(FIG / "fig1_grid_audit.png", dpi=200, bbox_inches="tight")
@@ -179,8 +179,9 @@ def figure3():
     fig.text(0.5, -0.06,
              "Only 1,670 of 47,297 cohort B participants (3.53%) carry any clinical covariate, and "
              "the same 1,670 carry all of them: age, sex, race, education, blood pressure and "
-             "glucose coincide to a Jaccard index of 0.9940. This is a two-phase sampling design, "
-             "so imputing the panel from the measured subsample would import its case enrichment.",
+             "glucose coincide to a Jaccard index of 0.9940. The design is therefore a two-phase "
+             "sample with a known selection rate, which Stage 4 uses as an inverse-probability "
+             "weight over the full cohort.",
              ha="center", va="top", fontsize=9.5, color=MUTED, wrap=True)
     fig.tight_layout()
     fig.savefig(FIG / "fig3_two_phase.png", dpi=200, bbox_inches="tight")
