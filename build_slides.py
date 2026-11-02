@@ -232,8 +232,8 @@ def build():
 
     # 3 ----------------------------------------------------------- the plan
     s = slide(prs, "2 · proposed method", "DCPTL: four stages",
-              "Disease-Conditioned Personalized Trajectory Learning. The patient state is "
-              "shared across diseases. The dynamics are not.")
+              "Proposed framework. The patient state is shared across diseases; the dynamics "
+              "are not.")
     bw, bh, gap = Inches(2.80), Inches(2.62), Inches(0.26)
     bx = M
     by = Inches(2.30)
@@ -245,8 +245,8 @@ def build():
     bx += bw + gap
     card(s, bx, by, bw, bh, "Stage 2\nDisease-conditioned dynamics",
          ["One learnable dynamics function per disease, conditioned on a disease code.",
-          "The same latent state evolves under three different operators.",
-          "This is the main claim of the project."], accent=CRIMSON, bsize=12.5)
+          "The same latent state evolves under three different operators."],
+         accent=CRIMSON, bsize=12.5)
     arrow(s, bx + bw + Inches(0.03), by + Inches(1.1))
     bx += bw + gap
     card(s, bx, by, bw, bh, "Stage 3\nHeterogeneity",
@@ -260,7 +260,9 @@ def build():
           "Diabetes: binary onset over a fixed horizon.",
           "Depression: next symptom level, duration, and state change."], bsize=12.5)
     text(s, M, Inches(5.05), CW, Inches(1.4),
-         ["Two things are new. First, the dynamics are conditioned on the disease instead of "
+         ["Status: DCPTL is specified here and built from week 1. No stage is trained yet, "
+          "so no number on the following slides comes from DCPTL.",
+          "Two things are new. First, the dynamics are conditioned on the disease instead of "
           "shared — the same patient state evolves under three learned operators. Second, "
           "heterogeneity is modeled twice: between patients, and between trajectory subtypes "
           "inside one disease. Each is stated as a claim with its own control, and tested in "
@@ -271,9 +273,9 @@ def build():
          size=15, lead=8, color=MUTED)
 
     # 4 ------------------------------------------------------- what is built
-    s = slide(prs, "3 · progress", "What is built and running",
-              "Six weeks of work. The data platform, the evaluation protocol and the "
-              "benchmark suite are finished.")
+    s = slide(prs, "3 · where the project stands", "Two tracks: one finished, one specified",
+              "The system DCPTL will run inside is built and measured. DCPTL itself is "
+              "specified and starts in week 1.")
     y = Inches(2.26)
     card(s, M, y, Inches(3.90), Inches(2.05), "Data platform — done",
          ["Four-layer pipeline, raw to model input.",
@@ -284,25 +286,24 @@ def build():
           "Minimum detectable effect per cell: 0.0011–0.0107.",
           "Visit-index reference row beside every result."], bsize=13.5)
     card(s, M + Inches(8.20), y, Inches(3.90), Inches(2.05), "Benchmark suite — done",
-         ["Nine sequence models trained across all cells.",
+         ["Nine existing architectures trained, all 9 cells.",
           "Gradient-boosted trees as the bar to clear.",
           "All code public and reproducible."], bsize=13.5)
     text(s, M, Inches(4.62), Inches(7.6), Inches(2.0),
-         ["Measuring the database first settled three design choices that the proposal had "
-          "left open. Each choice is now fixed by a measurement rather than by an "
-          "assumption:",
-          "Result 1 — the visit schedule carries information, so Stage 1 encodes the "
+         ["The six weeks produced three measurements on the system already running. Each one "
+          "fixes a DCPTL design choice that the proposal had left open:",
+          "Measurement 1 — the visit schedule carries information, so Stage 1 will encode the "
           "schedule with a three-state mask.",
-          "Result 2 — each prediction head gets its own feature set, which takes Stage 1 "
-          "from 1.00 to 4.63 observations per patient.",
-          "Result 3 — the covariate panel is a two-phase sample, so Stage 4 uses an "
+          "Measurement 2 — a per-head feature set is exact, so Stage 1 will read 4.63 "
+          "observations per patient instead of 1.00.",
+          "Measurement 3 — the covariate panel is a two-phase sample, so Stage 4 will use an "
           "inverse-probability weighted objective."],
          size=15, lead=8)
-    stat(s, Inches(9.1), Inches(4.70), "3", "design choices now settled by measurement")
+    stat(s, Inches(9.1), Inches(4.70), "3", "DCPTL design choices fixed by measurement")
     stat(s, Inches(9.1), Inches(5.95), "0", "requiring new data collection")
 
     # 5 ------------------------------------------------- result 1 · stage 1
-    s = slide(prs, "4 · result 1 — stage 1 input", "The visit schedule, measured and modeled",
+    s = slide(prs, "4 · measurement 1 → stage 1", "The visit schedule, measured and modeled",
               "I mapped all 19 time steps, and the map turns the missingness mask into a "
               "three-state signal.")
     s.shapes.add_picture(str(FIG / "fig1_grid_audit.png"), M, Inches(2.25), width=Inches(9.2))
@@ -310,8 +311,9 @@ def build():
             [("The map.", "One row per variable block, one column per time step; dark cells "
                           "hold data. 8 of 19 steps carry measurement, 11 are calendar "
                           "positions from the other cohort."),
-             ("The design rule.", "Stage 1 takes a three-state mask: not scheduled, scheduled "
-                                  "and unmeasured, scheduled and missed."),
+             ("The design rule it fixes.", "Stage 1 will take a three-state mask: not "
+                                           "scheduled, scheduled and unmeasured, scheduled "
+                                           "and missed."),
              ("Why this is a gain.", "A missed visit is information about the patient. Giving a "
                                      "missed visit its own mask state lets the encoder use the "
                                      "missed visit as a feature. Gradient-boosted trees on this "
@@ -320,7 +322,7 @@ def build():
             size=12.5, lead=9)
 
     # 6 ------------------------------------------------- result 2 · stage 1
-    s = slide(prs, "5 · result 2 — feature construction",
+    s = slide(prs, "5 · measurement 2 → stage 1 input",
               "Each prediction head gets its own feature set",
               "A variable defines the label for at most one of the three heads.")
     table(s, M, Inches(2.45), Inches(8.6),
@@ -345,7 +347,7 @@ def build():
     stat(s, Inches(9.7), Inches(5.40), "19 / 19", "steps hold the event count", TEAL, 30, 3.1)
 
     # 7 ------------------------------------------------- result 3 · stage 4
-    s = slide(prs, "6 · result 3 — stage 4 objective",
+    s = slide(prs, "6 · measurement 3 → stage 4",
               "The covariate panel is a two-phase design",
               "I recovered the sampling design: who was measured, and at what rate, is "
               "known exactly.")
@@ -357,7 +359,7 @@ def build():
              ("The selection rate is known.", "1.1% to 9.7% by enrollment arm, measured "
                                               "exactly, so the inverse-probability weight is "
                                               "computable per participant."),
-             ("The design rule.", "Stage 4 weights the likelihood of each participant by the "
+             ("The design rule it fixes.", "Stage 4 will weight the likelihood of each participant by the "
                                   "inverse of that participant’s selection rate — the standard "
                                   "two-phase estimator."),
              ("Why the weighted estimator.", "The weighted estimator trains on all 47,297 "
@@ -398,8 +400,7 @@ def build():
 
     # 9 ------------------------------------------------------- experiments
     s = slide(prs, "8 · experiments", "Four experiments, each with its control fixed in advance",
-              "Synthetic data first: the method is verified against dynamics I planted "
-              "myself.")
+              "None of these has run yet. Weeks 2 to 5 run them, synthetic data first.")
     table(s, M, Inches(2.32), Inches(8.9),
           ["Experiment", "What it establishes", "Control it is measured against"],
           [["E1  Disease dynamics",
